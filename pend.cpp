@@ -22,10 +22,13 @@ pendulum::segment::segment(float mass){
 pendulum::pendulum(float m1, float m2){
     this->seg1 = segment(m1);
     this->seg2 = segment(m2);
+    this->anchor = sf::Vertex();
     this->anchor.position = sf::Vector2f(500.f, 50.f);
 
     this->move = true;
     this->hold = false;
+    this->selecAnchor = false;
+    this->lctrlPressed = false;
 }
 
 // Render the pendulum
@@ -71,12 +74,15 @@ void pendulum::update(int dt, sf::Vector2i mouse){
         seg1.circle.setPosition(x1-seg1.m, y1-seg1.m);
         seg2.circle.setPosition(x1 + seg2.l*sin(seg2.agl)-seg2.m, y1 + seg2.l*cos(seg2.agl)-seg2.m);
     } else if (hold){
-
+        if (selecAnchor){
+            anchor.position.x = mouse.x;
+            anchor.position.y = mouse.y;
+        } else {
         sf::Vector2f corner = sf::Vector2f(mouse);
-        corner.x -= (*selected).m;
-        corner.y -= (*selected).m;
-        (*selected).circle.setPosition(corner);
-
+            corner.x -= (*selected).m;
+            corner.y -= (*selected).m;
+            (*selected).circle.setPosition(corner);
+        }
         segment *segs[2] = {&seg1, &seg2};
         segment *seg;
         float sideVert;
@@ -112,11 +118,11 @@ void pendulum::update(int dt, sf::Vector2i mouse){
 
 // Return a string with various information of the pendulum.
 std::string pendulum::info(){
-    std::string data = "\nlenght1 : " + std::to_string(seg1.l/100);
+    std::string data = "\nmass1 : " + std::to_string(seg1.m) + "\nlenght1 : " + std::to_string(seg1.l/100);
     data += "    angle1 : " + std::to_string(seg1.agl) + " rad";
     data += "\nagl velocity1 : " + std::to_string(seg1.aVel) + " rad/s";
     data += "\nagl acceleration1 : " + std::to_string(seg1.aAcc) + " rad/s^2";
-    data += "\nlenght2 : " + std::to_string(seg2.l/100) + "    angle2 : " + std::to_string(seg2.agl) + " rad";
+    data += "\nmass2 : " + std::to_string(seg2.m) + "\nlenght2 : " + std::to_string(seg2.l/100) + "    angle2 : " + std::to_string(seg2.agl) + " rad";
     data += "\nagl velocity2 : " + std::to_string(seg2.aVel) + " rad/s";
     data += "\nagl acceleration2 : " + std::to_string(seg2.aAcc) + " rad/s^2";
     return data;
@@ -126,27 +132,40 @@ std::string pendulum::info(){
 
 // Stop the simulation and enable tracking of cursor.
 void pendulum::clicked(sf::Vector2i mouse){
-    sf::Vector2f center1 = seg1.circle.getPosition();
-    center1.x +=seg1.m;
-    center1.y +=seg1.m;
-    sf::Vector2f center2 = seg2.circle.getPosition();
-    center1.x +=seg2.m;
-    center1.y +=seg2.m;
-    float d1 = pow(mouse.x-center1.x,2) + pow(mouse.y-center1.y,2);
-    float d2 = pow(mouse.x-center2.x,2) + pow(mouse.y-center2.y,2);
-    if (d1<d2){
-        selected=&seg1;
-    } 
-    else {
-        selected=&seg2;
+    if (!selecAnchor){
+        sf::Vector2f center1 = seg1.circle.getPosition();
+        center1.x +=seg1.m;
+        center1.y +=seg1.m;
+        sf::Vector2f center2 = seg2.circle.getPosition();
+        center1.x +=seg2.m;
+        center1.y +=seg2.m;
+        float d1 = pow(mouse.x-center1.x,2) + pow(mouse.y-center1.y,2);
+        float d2 = pow(mouse.x-center2.x,2) + pow(mouse.y-center2.y,2);
+        if (d1<d2){
+            selected=&seg1;
+        } 
+        else {
+            selected=&seg2;
+        }
     }
     move = false;
     hold = true;
 }
 
+// Change the mass of a segment.
+void pendulum::chgMass(int dm){
+    if (hold && !selecAnchor && ((*selected).m + dm>0)){
+        (*selected).m += dm;
+        (*selected).circle.setRadius((*selected).m);
+    }
+}
+
 // Start the simulation and disable tracking of cursor.
 void pendulum::released(){
     hold = false;
+    if (!lctrlPressed){
+        selecAnchor = false;
+    }
 }
 
 // Stop the simulation and enable tracking of cursor.
@@ -163,4 +182,12 @@ void pendulum::pause(){
 void pendulum::restart(int width){
     anchor.position.x = width/2;
     move = true;
+}
+
+// Enable the movement of the anchor by the cursor.
+void pendulum::moveAnchor(bool mvAnchor){
+    lctrlPressed = mvAnchor; // Help switching between anchor and segement movement (mode switch only happens when the mouse button isn't pressed or when it's released)
+    if (!hold){
+        selecAnchor = mvAnchor;
+    }
 }

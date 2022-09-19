@@ -15,21 +15,22 @@ private:
             segment();
             segment(float mass);
             sf::CircleShape circle;
-            float m;
-            float agl;
-            float aVel;
-            float aAcc;
-            float l;
+            float m;    // mass
+            float agl;  // angle
+            float aVel; // angular velocity
+            float aAcc; // angluar acceleration
+            float l;    // lenght
     };
 
     segment seg1;
     segment seg2;
-    bool move;
-    bool hold;
+    bool move;         // Play or pause the simulation.
+    bool hold;         // Represent if the mouse button is pressed or not.
+    bool selecAnchor;  // Selects if the cursor move the anchor or a segment.
+    bool lctrlPressed; // Help switching between anchor and segement movement (mode switch only happens when the mouse button isn't pressed or when it's released).
 
-    segment* selected;
-    sf::Vertex anchor;
-    sf::Texture texture;
+    segment* selected; // Segement currently selected by the cursor.
+    sf::Vertex anchor; // Point where the pendulum is fixed.
 
 public:
     pendulum(float m1, float m2);
@@ -40,6 +41,8 @@ public:
     void stop();
     void pause();
     void restart(int width);
+    void chgMass(int dm);
+    void moveAnchor(bool mvAnchor);
     std::string info();
 };
 
