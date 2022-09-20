@@ -12,8 +12,8 @@ The window opens at 1000x1000 pixels, but can be resized.
 - The information menu can be hidden by pressing `F3`.  
 
 ## Build
-This program requires SFML and must be compiled using the options `-lsfml-graphics -lsfml-window -lsfml-system`
+This program requires SFML and must be compiled using the options `-lsfml-graphics -lsfml-window -lsfml-system`.
 
-## Convetions
+## Conventions
 Diagram of the conventions used by the notations in the source code:  
 <img src="./pendulum.png" width="200" alt="Diagram of the double pendulum" title="Diagram of the double pendulum"/>
